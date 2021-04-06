@@ -43,6 +43,8 @@ public class Mongo {
 		while ((line = br.readLine()) != null) 
 		{
 			String[] data = line.split(splitBy); 
+			
+			
 			if(check == true || ped_access == null || ped_details == null) {
 				
 		JSONObject arrayElementThree = new JSONObject();
