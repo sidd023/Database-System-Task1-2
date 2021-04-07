@@ -6,30 +6,30 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 
 public class dbload {
 
-	
-	@SuppressWarnings("null")
 	public static void main(String args[]) throws IOException, CsvValidationException {
 
-		String filepath = "/Users/sid/Desktop/Data1.csv";
+		String filepath = "/Users/sid/Desktop/BigData.csv";
 		int bytes_used = 0;
 		int record_size = 0;
 		int page_no = 0;
 		int page_size = 4096;
 		int offset = 0;
 		String heapfile = "HeapFile.dat";
-		byte[] ped_records = null;
+		byte[] ped_records = new byte[page_size];
 		boolean first_line = true;
 		int record_read = 0;
 		Record_Details[] record = new Record_Details[page_size];
 		
-//		byte nnn = (byte) ':';
-//		System.out.println("SIZE  "+nnn);
+
+		
 		
 
 		try (CSVReader row = new CSVReader(new FileReader(filepath))) {
@@ -38,7 +38,8 @@ public class dbload {
 				if (first_line == false) {
 					
 					
-				    record[record_read] = new Record_Details();
+					record[record_read] = new Record_Details();
+					
 					record[record_read].setID(data[0]);
 					record[record_read].setDate_Time(data[1]);
 					record[record_read].setYear(data[2]);
@@ -50,8 +51,10 @@ public class dbload {
 					record[record_read].setSensor_Name(data[8]);
 					record[record_read].setHourly_Counts(data[9]);
 					record[record_read].setSTD_NAME(data[7],data[1]);
-					record_size = record[record_read].get_total_bytes();
 					
+					
+					
+					record_size = record[record_read].get_total_bytes();
 					
 				    
 						if (bytes_used + record_size > page_size) {
@@ -61,9 +64,11 @@ public class dbload {
 							
 							RandomAccessFile raf = null;
 							try {
-								raf = new RandomAccessFile(heapfile, "w");
+								raf = new RandomAccessFile(heapfile, "rw");
 								raf.seek((long) offset);
 								raf.write(ped_records, 0, ped_records.length - 1);
+								//System.out.println("Write Success");
+								
 							} catch (FileNotFoundException e) {
 								e.printStackTrace();
 							} finally {
@@ -71,18 +76,43 @@ public class dbload {
 							}
 
 							bytes_used = 0;
+							record_read = 0;
+							
+							
 						}
 						
 							bytes_used += record_size;
-							byte[] this_rec = record[record_read].get_byte_data(record[record_read], record_size);	
+							byte[] this_rec = record[record_read].get_byte_data(record[record_read], page_size);	
 							ByteBuffer buff = ByteBuffer.wrap(ped_records);
 							buff.put(this_rec);
+							
+//							
+//							
+//							page_no += 1;
+//							offset = page_no * bytes_used;
+//							
+//							RandomAccessFile raf = new RandomAccessFile(heapfile, "rw");
+//							try {
+//								raf.seek((long) offset);
+//								raf.write(ped_records, 0, ped_records.length - 1);
+//								System.out.println("Write Success ");
+//								
+//							} catch (FileNotFoundException e) {
+//								e.printStackTrace();
+//							} finally {
+//								raf.close();
+//							}
+//							
+							
+							
+							
 							
 							record_read += 1;
 							
 						
 				}
 				first_line = false;
+				//System.out.println(page_no);
 
 			}
 		}

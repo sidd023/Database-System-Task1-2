@@ -29,21 +29,27 @@ public class Derby {
 		
 		PrintWriter pw1 = null,pw2 = null,pw3 = null;
         try {
-            pw1 = new PrintWriter(new File("/Users/sid/Documents/RMIT/Sem-6 March 2021/Database System/Assignment 1/Task_1_Derby/Ped_Count.csv"));
+            pw1 = new PrintWriter(new File("/Users/sid/Documents/RMIT/Sem-6 March 2021/Database System/Assignment 1/Task_1_Derby/Ped_Count.txt"));
             pw2 = new PrintWriter(new File("/Users/sid/Documents/RMIT/Sem-6 March 2021/Database System/Assignment 1/Task_1_Derby/Ped_Access.csv"));
             pw3 = new PrintWriter(new File("/Users/sid/Documents/RMIT/Sem-6 March 2021/Database System/Assignment 1/Task_1_Derby/Sensor.csv"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
 		
+        boolean check = true;
         double counter=0;
         try (CSVReader reader = new CSVReader(new FileReader(filename))) {
 	        String[] record;
 	        while ((record = reader.readNext()) != null) {
-	            pw1.append(record[0]+","+record[1]+","+record[2]+","+record[3]+"\n");
-		        pw2.append(record[0]+","+record[4]+","+record[5]+","+record[6]+"\n");
-		        pw3.append(record[0]+","+record[7]+","+record[8]+","+record[9].replace(",", "")+"\n");
-		        counter+=1;
+	        	
+	        	if(check == false){
+	        		 pw1.append(record[0]+","+record[1]+","+record[2]+","+record[3]+"\n");
+	 		        pw2.append(record[0]+","+record[4]+","+record[5]+","+record[6]+"\n");
+	 		        pw3.append(record[0]+","+record[7]+","+record[8]+","+record[9].replace(",", "")+"\n");
+	 		        counter+=1;
+	        	}
+	        	check = false;
+	           
 	        }
 	    }
 		pw1.flush();

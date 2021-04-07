@@ -9,6 +9,56 @@ import org.json.simple.JSONObject;
 
 public class Mongo {
 	
+	@SuppressWarnings("unchecked")
+	public JSONArray add_array3(String Sensor_ID, String Sensor_Name, String Hourly_Counts, String ID)
+	{
+		JSONObject arrayElementThree = new JSONObject();
+		arrayElementThree.put("Sensor_ID", Sensor_ID);
+		arrayElementThree.put("Sensor_Name", Sensor_Name);
+		arrayElementThree.put("Hourly_count", Hourly_Counts);
+		arrayElementThree.put("ID", ID);
+		
+		JSONArray array3 = new JSONArray();
+		array3.add(arrayElementThree);
+		
+		return array3;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public JSONArray add_array2(String Date_Time, String Time, JSONArray array3)
+	{
+		JSONObject arrayElementTwo = new JSONObject();
+		arrayElementTwo.put("Date_Time", Date_Time);
+		arrayElementTwo.put("Time", Time);
+		arrayElementTwo.put("Sensor_Data", array3);
+		
+		JSONArray array2 = new JSONArray();
+		array2.add(arrayElementTwo);
+
+		return array2;
+		
+	}
+	
+	@SuppressWarnings("unchecked")
+	public JSONArray add_array1(String Year, String Month, String MDate, String Day, JSONArray array2, JSONArray array3)
+	{
+		JSONObject arrayElementOne = new JSONObject();
+		arrayElementOne.put("Year", Year);
+		arrayElementOne.put("Month", Month);
+		arrayElementOne.put("MDate", MDate);
+		arrayElementOne.put("Day", Day);
+		arrayElementOne.put("Ped_Acess", array2);
+		
+		
+		JSONArray array1 = new JSONArray();
+		array1.add(arrayElementOne);
+		return array1;
+		
+	}
+	
+	
+	
+	
 	@SuppressWarnings({ "unchecked", "resource" })
 	public static void main (String args[]) throws IOException {
 		String line = "";
@@ -37,12 +87,40 @@ public class Mongo {
         FileWriter file = new FileWriter("/Users/sid/Documents/RMIT/Sem-6 March 2021/Database System/Assignment 1/Task_2_Mongo/Ped_output.json");
         JSONArray array = new JSONArray();
        
+        String Year = "";
+        String Time = "";
+        String ID = "";
+       
+        
         
         boolean check=false;
 	        
 		while ((line = br.readLine()) != null) 
 		{
 			String[] data = line.split(splitBy); 
+			
+			if(Year.equals(data[2]))
+			{
+				if(Time.equals(data[6]))
+				{
+					if(ID.equals(data[0]))
+					{
+						
+					}
+					else {
+						
+					}
+				}
+				
+			}
+			else {
+				
+			}
+			
+			Year = data[2];
+			Time = data[6];
+			ID = data[0];
+			
 			
 			
 			if(check == true || ped_access == null || ped_details == null) {

@@ -6,41 +6,43 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.text.html.HTMLDocument.Iterator;
+
 public class Record_Details {
 
-	private byte[] ID;
+	private byte[] ID = new byte[4];
 
-	private byte[] Date_Time;
+	private byte[] Date_Time = new byte[22];
 
-	private byte[] Year;
+	private byte[] Year = new byte[4];
 
-	private byte[] Month;
+	private byte[] Month = new byte[9];
 
-	private byte[] Day;
+	private byte[] Day = new byte[9];
 
 	private byte[] Sensor_Name;
 
-	private byte[] Mdate;
+	private byte[] Mdate = new byte[4];
 
-	private byte[] Time;
+	private byte[] Time = new byte[4];
 
-	private byte[] Sensor_ID;
+	private byte[] Sensor_ID = new byte[4];
 
-	private byte[] Hourly_Counts;
+	private byte[] Hourly_Counts = new byte[4];
 
 
-	private byte[] STD_NAME;
+	private byte[] STD_NAME = new byte[25];
 
-	private char delimiter = ',';
-
-	private char end_of_file = '|';
+	private byte delimiter = ';';
 	
-	private byte[] records = null;
-	
+	private byte end_of_record = '|';
 	
 
 	public Record_Details() {
 		super();
+		
+		
+		
 	}
 
 	public byte[] getSTD_NAME() {
@@ -88,10 +90,21 @@ public class Record_Details {
 		return Hourly_Counts;
 	}
 	
+	public byte getDelimiter() {
+		return delimiter;
+	}
+	
+	public byte getEndofRecord() {
+		return end_of_record;
+	}
+	
+	
+	
 	//----------------------------------------INT FIELDS-----------------------------------------------------------------------------------------------
 
 	public void setID(String iD) {
-		ID = int_to_byte_array(Integer.parseInt(iD));
+		ID = int_to_byte_array(Integer.parseInt(iD));	
+		//System.out.println(ID.length);
 	}
 
 	public void setYear(String year) {
@@ -119,59 +132,71 @@ public class Record_Details {
 	
 	
 	public void setSTD_NAME(String sensor_ID, String DateTime) {
-		STD_NAME = string_to_byte_array(strToBinary(sensor_ID + ' ' + DateTime));
+		STD_NAME = string_to_byte_array(strToBinary(sensor_ID + " " + DateTime));
+		
 	}
 
 	public void setDate_Time(String date_Time) {
 		Date_Time = string_to_byte_array(strToBinary(date_Time));
+		
 	}
 
 	public void setMonth(String month) {
 		Month = string_to_byte_array(strToBinary(month));
+		
 	}
 
 	public void setDay(String day) {
 		Day = string_to_byte_array(strToBinary(day));
+		
 	}
 
+	//variable size
 	public void setSensor_Name(String sensor_Name) {
 		Sensor_Name = string_to_byte_array(strToBinary(sensor_Name));
+		
 	}
 
 	
 
 	//----------------------------------------FUNCTIONS -----------------------------------------------------------------------------------------------
 	
-	public byte[] int_to_byte_array(int i)
-	{
+	public byte[] int_to_byte_array(int i){
 		    ByteBuffer bb = ByteBuffer.allocate(4); 
 		    bb.putInt(i); 
+		   // System.out.println(byte_array_to_int(bb.array()));
 		    return bb.array();
 	}
 	
-	public int byte_array_to_int(byte[] data)
-	{
+	public int byte_array_to_int(byte[] data){
 		return ByteBuffer.wrap(data).getInt();
-
 	}
 	
 	public byte[] string_to_byte_array(String string)
 	{
+		string = string.replaceAll("\\s+","");
 		
 		List<Integer> list = new ArrayList<>();
         for(String str : string.split("(?<=\\G.{8})"))
-            list.add(Integer.parseInt(str,2));
+        {
+        	
+        	list.add(Integer.parseInt(str,2));
+        }
+            
         
-        // variable size 
         byte[] data = new byte[list.size()];
         for(int i=0; i< list.size(); i++)
         {
         	int bin = list.get(i);
         	data[i] = (byte) bin; 
         }
-        
+        //System.out.println(new String(data));
 		return data;
 	}
+	
+	
+	
+	
 	
 	public String byte_array_to_string(byte[] data)
 	{
@@ -180,8 +205,16 @@ public class Record_Details {
 	
 	public int get_total_bytes()
 	{
-		int tot_bytes = ID.length + Date_Time.length + Year.length + Month.length + Mdate.length 
-				 + Day.length + Time.length + Sensor_ID.length + Sensor_Name.length + Hourly_Counts.length;
+		int tot_bytes = this.ID.length + this.Date_Time.length + this.Year.length + this.Month.length + this.Mdate.length 
+				 + this.Day.length + this.Time.length + this.Sensor_ID.length  + this.Hourly_Counts.length;
+		
+		
+		
+		System.out.println(tot_bytes);
+		
+		
+		tot_bytes+= this.Sensor_Name.length;
+		
 		return tot_bytes;
 		
 	}
@@ -189,37 +222,36 @@ public class Record_Details {
 	public byte[] get_byte_data(Record_Details record , int record_size)
 	{
 		
-		byte[] allByteArray = new byte[record_size+1];
+		byte[] allByteArray = new byte[record_size];
 
 		ByteBuffer buff = ByteBuffer.wrap(allByteArray);
 		
-		
 			buff.put(record.getID());
-	//		buff.put((byte) ':');
+			buff.put(delimiter);
 			buff.put(record.getDate_Time());
-	//		buff.put((byte) ':');
+			buff.put(delimiter);
 			buff.put(record.getYear());
-	//		buff.put((byte) ':');
+			buff.put(delimiter);
 			buff.put(record.getMonth());
-	//		buff.put((byte) ':');
+			buff.put(delimiter);
 			buff.put(record.getMdate());
-	//		buff.put((byte) ':');
+			buff.put(delimiter);
 			buff.put(record.getDay());
-	//		buff.put((byte) ':');
+			buff.put(delimiter);
 			buff.put(record.getTime());
-	//		buff.put((byte) ':');
+			buff.put(delimiter);
 			buff.put(record.getSensor_ID());
-	//		buff.put((byte) ':');
+			buff.put(delimiter);
 			buff.put(record.getSensor_Name());
-	//		buff.put((byte) ':');
+			buff.put(delimiter);
 			buff.put(record.getHourly_Counts());
-	//		buff.put((byte) ':');
+			buff.put(delimiter);
 			buff.put(record.getSTD_NAME());
-	//		buff.put((byte) '|');
+			
+			buff.put(end_of_record);
 				
-		
-		
-		
+			
+			
 		return buff.array();
 	}
 	
@@ -244,7 +276,11 @@ public class Record_Details {
                 val /= 2;
             }
             bin = reverse(bin);
-            bin_str+="0"+bin;
+            while(bin.length()%8 != 0)
+            {
+            	bin = "0"+ bin;
+            }
+            bin_str+=bin+ " ";
             
         } 
 		return bin_str;
@@ -266,8 +302,10 @@ public class Record_Details {
         return String.valueOf(a);
     }
 	
-	
-	
+	//-------------------------------------------------------------------------------------------------------------------------------------------------
+   
+    
+    
 
 }
 
