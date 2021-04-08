@@ -6,7 +6,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class dbquery {
 
@@ -22,12 +24,17 @@ public class dbquery {
 		String input_search = "40 11/02/2019 04:00:00 AM";
 
 		int pageNo = 0;
+		boolean check = true;
+		String endOfFile = record.byte_to_string(record.getEndofRecord());
 
+		while(check == true)
+		{
+			
 		int offset = page_size * pageNo;
 
-		// find total pages in a heap file
-
 		byte[] data = new byte[page_size];
+		System.out.println(data.length);
+		
 		RandomAccessFile raf = null;
 		try {
 			raf = new RandomAccessFile(heapfile, "r");
@@ -39,6 +46,16 @@ public class dbquery {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		
+
+		if(data == null)
+		{
+			check = false;
+			break;
+		}
+		
+		
 		byte[] header = null;
 		try {
 
@@ -63,13 +80,13 @@ public class dbquery {
 
 		int i = 0;
 
-		String endOfFile = record.byte_to_string(record.getEndofRecord());
+		
 		
 		for (i = 0; i < header.length; i++) {
 			
 			
 			String rec_det = record.byte_to_string(header[i]);
-			System.out.println(rec_det);
+			//System.out.println(rec_det);
 		
 			if(rec_det.equals(endOfFile)) {
 				end_rec = i;
@@ -84,7 +101,7 @@ public class dbquery {
 				byte[] fields = Arrays.copyOfRange(header, pos + 1, end_rec);
 				String STD_NAME = record.byte_array_to_string(fields);
 
-				System.out.println("DDDDD " + STD_NAME);
+				//System.out.println("DDDDD " + STD_NAME);
 
 				if (STD_NAME.equals(input_search)) {
 					System.out.println("Found " + input_search + " at record " + rec_no);
@@ -94,8 +111,9 @@ public class dbquery {
 			}
 
 		}
-		
+		pageNo+=1;
 
+		}
 	}
 
 }
