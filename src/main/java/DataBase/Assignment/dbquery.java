@@ -1,119 +1,113 @@
 package DataBase.Assignment;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.FileNotFoundException;
+import java.io.FileNotFoundException; 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class dbquery {
 
 	public static void main(String args[]) {
 
-		int page_size = 4096;
-		int pos = 0;
-		int start_rec = 0;
-		int end_rec = 0;
-		int rec_no = 0;
+		/*
+		 * The file input and page size are taken as input
+		 */
+		String input_search = "";
+		int page_size = 0;
+		if (args.length == 2) {
+			input_search = args[0];
+			page_size = Integer.parseInt(args[1]);
+			
+		} else {
+			// If no file is given, the program breaks
+			System.out.println("NO FILE\nPlease enter in format java dbquery text pagesize");
+			return;
+		}
+
 		String heapfile = String.format("heapfile.%s", page_size);
-		Record_Details record = new Record_Details();
-		String input_search = "40 11/02/2019 04:00:00 AM";
 
 		int pageNo = 0;
 		boolean check = true;
-		String endOfFile = record.byte_to_string(record.getEndofRecord());
 
-		while(check == true)
-		{
-			
-		int offset = page_size * pageNo;
+		/*
+		 * start time and end time are calculated
+		 */
+		long endTime = 0;
+		long startTime = 0;
+		startTime = System.currentTimeMillis();
 
-		byte[] data = new byte[page_size];
-		System.out.println(data.length);
-		
-		RandomAccessFile raf = null;
-		try {
-			raf = new RandomAccessFile(heapfile, "r");
+		/*
+		 * this loop breaks when an exception is thrown, when there are no more pages to
+		 * read from the heap
+		 */
+		while (check == true) {
+			// page number and offsets are calculated
+			pageNo += 1;
+			int offset = page_size * pageNo;
+			byte[] data = new byte[page_size];
 
-			raf.seek((long) offset);
-			raf.read(data, 0, page_size);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		
-
-		if(data == null)
-		{
-			check = false;
-			break;
-		}
-		
-		
-		byte[] header = null;
-		try {
-
-			DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
-
-			header = new byte[data.length];
-
-			for (int i = 0; i < header.length; i++) {
-				header[i] = dis.readByte();
-
-			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
+			RandomAccessFile raf = null;
 			try {
-				raf.close();
+				raf = new RandomAccessFile(heapfile, "r");
+				raf.seek((long) offset);
+
+				// a page is read into data byte[]
+				raf.read(data, 0, page_size);
+			} catch (FileNotFoundException e) {
+				System.out.println(" File Not Found");
 			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		int i = 0;
-
-		
-		
-		for (i = 0; i < header.length; i++) {
-			
-			
-			String rec_det = record.byte_to_string(header[i]);
-			//System.out.println(rec_det);
-		
-			if(rec_det.equals(endOfFile)) {
-				end_rec = i;
-				byte[] row = Arrays.copyOfRange(header, start_rec, end_rec);
-				for (int j = 0; j < row.length; j++) {
-					if (row[j] == record.getDelimiter()) {
-						pos = j;
-					}
-				}
-				start_rec = end_rec + 1;
-
-				byte[] fields = Arrays.copyOfRange(header, pos + 1, end_rec);
-				String STD_NAME = record.byte_array_to_string(fields);
-
-				//System.out.println("DDDDD " + STD_NAME);
-
-				if (STD_NAME.equals(input_search)) {
-					System.out.println("Found " + input_search + " at record " + rec_no);
-				}
-
-				rec_no++;
+				endTime = System.currentTimeMillis();
+				System.out.println("Time taken to search records " + (endTime - startTime) + " ms.");
+				System.out.println("Pages Read " + pageNo);
+				check = false;
+				break;
 			}
 
-		}
-		pageNo+=1;
+			finally {
+				try {
+					raf.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 
-		}
+			/*
+			 * the collection of records are converted into string format making it easier
+			 * to read
+			 */
+			String whole_records = new String(data);
+
+			/*
+			 * each record from the pool of records are split into individual arrays using
+			 * the delimiter
+			 */
+			String[] each_record = whole_records.split("~");
+
+			/*
+			 * since there are more then one record in a page, we iterate through each
+			 * record array
+			 */
+			for (int i = 0; i < each_record.length; i++) {
+
+				/*
+				 * each field of data from a single record is split
+				 */
+				String[] rec = each_record[i].split(";");
+				String id = rec[0];
+				String search = rec[rec.length - 1];
+
+				/*
+				 * the search is performed over the data field to check if there exists any data
+				 * with the given input
+				 */
+				if (search.contains(input_search)) {
+					// data is displayed to the console
+					System.out.println("Found " + input_search + " at record ID " + id + " STD_NAME " + search);
+				}
+
+			} // iterate through each record and fins for the match
+
+		} // the loop breaks with the while loop when there are no more records left in
+			// the heap
 	}
 
 }

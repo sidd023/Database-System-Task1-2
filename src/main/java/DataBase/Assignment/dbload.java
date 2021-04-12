@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 
 public class dbload {
 
@@ -29,8 +28,6 @@ public class dbload {
 			System.out.println("NO FILE");
 			return;
 		}
-
-		// "/Users/sid/Desktop/BigData.csv";
 
 		String filepath = filename;
 
@@ -60,7 +57,6 @@ public class dbload {
 		long total_records = 0;
 		long endTime = 0;
 		long startTime = 0;
-
 		/*
 		 * a class object is initiated with size of maximum page size as no records
 		 * exceeding page size can be written into a page
@@ -101,8 +97,8 @@ public class dbload {
 				}
 
 				/*
-				 * each input data are initialized accordingly using a class
-				 * (more explanation in Record_Details.java)
+				 * each input data are initialized accordingly using a class (more explanation
+				 * in Record_Details.java)
 				 */
 				record[record_read] = new Record_Details();
 				record[record_read].setID(data[0]);
@@ -131,12 +127,13 @@ public class dbload {
 					 * page offsets are calculated accordingly in-order to write into a disk
 					 */
 					page_no += 1;
-					offset = page_no * bytes_used;
+					offset = page_no * page_size;
 					RandomAccessFile raf = null;
 					try {
 						raf = new RandomAccessFile(heapfile, "rw");
 						raf.seek((long) offset);
 						raf.write(ped_records, 0, ped_records.length - 1);
+
 					} catch (FileNotFoundException e) {
 						e.printStackTrace();
 					} finally {
@@ -165,9 +162,19 @@ public class dbload {
 				 * page is full
 				 */
 				bytes_used += record_size;
-				byte[] this_rec = record[record_read].get_byte_data(record[record_read], page_size);
-				ByteBuffer buff = ByteBuffer.wrap(ped_records);
-				buff.put(this_rec);
+
+				/*
+				 * The above read record is combined with the array lost containing all the
+				 * records
+				 */
+				byte[] this_rec = new Record_Details().get_byte_data(record[record_read], page_size);
+				byte[] one = this_rec;
+				byte[] two = ped_records;
+				byte[] combined = new byte[one.length + two.length];
+				System.arraycopy(one, 0, combined, 0, one.length);
+				System.arraycopy(two, 0, combined, one.length, two.length);
+				ped_records = combined;
+
 				record_read += 1;
 			}
 			// used to skip the first line of CSV

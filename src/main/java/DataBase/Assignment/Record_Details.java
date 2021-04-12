@@ -1,22 +1,23 @@
 package DataBase.Assignment;
 
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class Record_Details {
 
+	/*
+	 * the data are stored in byte[] format for each field
+	 */
 	private byte[] ID = new byte[4];
 
-	private byte[] Date_Time = new byte[22];
+	private byte[] Date_Time;
 
 	private byte[] Year = new byte[4];
 
-	private byte[] Month = new byte[9];
+	private byte[] Month;
 
-	private byte[] Day = new byte[9];
+	private byte[] Day;
 
 	private byte[] Sensor_Name;
 
@@ -28,17 +29,21 @@ public class Record_Details {
 
 	private byte[] Hourly_Counts = new byte[4];
 
-	private byte[] STD_NAME = new byte[25];
+	private byte[] STD_NAME;
 
 	private byte delimiter = ';';
 
-	private byte end_of_record = '|';
+	private byte end_of_record = '~';
 
+	// constructor
 	public Record_Details() {
 		super();
 
 	}
 
+	/*
+	 * getters and setters for each fields are implemented
+	 */
 	public byte[] getSTD_NAME() {
 		return STD_NAME;
 	}
@@ -91,14 +96,13 @@ public class Record_Details {
 		return end_of_record;
 	}
 
-	// ----------------------------------------INT
-	// FIELDS-----------------------------------------------------------------------------------------------
-
-	public void setID(String iD) {
-		ID = int_to_byte_array(Integer.parseInt(iD));
-//		byte_array_to_int(ID);
-//		 System.out.println(ID.length);
-	}
+	/*
+	 * Integer Fields The given data with int fields are stored in their ASCII value
+	 * occupying 4 bytes of data
+	 * 
+	 * The passed parameter string is converted into string which is then converted
+	 * and stored as bytes
+	 */
 
 	public void setYear(String year) {
 		Year = int_to_byte_array(Integer.parseInt(year));
@@ -121,8 +125,14 @@ public class Record_Details {
 
 	}
 
-	// ----------------------------------------STRING
-	// FIELDS-----------------------------------------------------------------------------------------------
+	/*
+	 * String fields The passed string parameter is converted into binary format
+	 * before converting them into byte[]
+	 */
+
+	public void setID(String iD) {
+		ID = string_to_byte_array(strToBinary(iD));
+	}
 
 	public void setSTD_NAME(String sensor_ID, String DateTime) {
 		STD_NAME = string_to_byte_array(strToBinary(sensor_ID + " " + DateTime));
@@ -144,74 +154,85 @@ public class Record_Details {
 
 	}
 
-	// variable size
 	public void setSensor_Name(String sensor_Name) {
 		Sensor_Name = string_to_byte_array(strToBinary(sensor_Name));
 
 	}
 
-	// ----------------------------------------FUNCTIONS
-	// -----------------------------------------------------------------------------------------------
-
+	/*
+	 * This function converts the given integer into an array of bytes which is then
+	 * returned
+	 */
 	public byte[] int_to_byte_array(int i) {
 		ByteBuffer bb = ByteBuffer.allocate(4);
 		bb.putInt(i);
-		// System.out.println(byte_array_to_int(bb.array()));
 		return bb.array();
 	}
 
+	/*
+	 * this method converts the integer data field byts[] back into its original
+	 * data, Integer
+	 */
 	public int byte_array_to_int(byte[] data) {
 		return ByteBuffer.wrap(data).getInt();
 	}
 
+	/*
+	 * This function is responsible to convert the passed string of binary data into
+	 * bytes
+	 */
 	public byte[] string_to_byte_array(String string) {
+
+		// the string is searched for whitespace and replaced
 		string = string.replaceAll("\\s+", "");
 
+		// the binary data is split into bits of 8 and converted
 		List<Integer> list = new ArrayList<>();
 		for (String str : string.split("(?<=\\G.{8})")) {
-
 			list.add(Integer.parseInt(str, 2));
 		}
-
+		// data from the list is coppied into byte[] which
+		// is then returned
 		byte[] data = new byte[list.size()];
 		for (int i = 0; i < list.size(); i++) {
 			int bin = list.get(i);
 			data[i] = (byte) bin;
 		}
-		// System.out.println(new String(data));
 		return data;
 	}
 
+	/*
+	 * This method converts the array byte of string fields back to its original
+	 * data
+	 */
 	public String byte_array_to_string(byte[] data) {
 		return new String(data);
 	}
-	
-	public String byte_to_string(byte data)
-	{
-		String s1 = String.format("%8s", Integer.toBinaryString(data & 0xFF)).replace(' ', '0');
-		
-		return new String (string_to_byte_array(s1));
-	}
 
+//	public String byte_to_string(byte data)
+//	{
+//		String s1 = String.format("%8s", Integer.toBinaryString(data & 0xFF)).replace(' ', '0');
+//		return new String (string_to_byte_array(s1));
+//	}
+
+	/*
+	 * The length of each record is computed by adding up the byte array size of
+	 * each field
+	 */
 	public int get_total_bytes() {
 		int tot_bytes = this.ID.length + this.Date_Time.length + this.Year.length + this.Month.length
 				+ this.Mdate.length + this.Day.length + this.Time.length + this.Sensor_ID.length
-				+ this.Hourly_Counts.length;
-
-		//System.out.println(Day.length);
-
-		tot_bytes += this.Sensor_Name.length;
-
+				+ this.Hourly_Counts.length + this.Sensor_Name.length;
 		return tot_bytes;
-
 	}
 
+	/*
+	 * this function takes in the record and the page size which returns a record as
+	 * a single byte array with delimiters and end of record character added
+	 */
 	public byte[] get_byte_data(Record_Details record, int record_size) {
-
 		byte[] allByteArray = new byte[record_size];
-
 		ByteBuffer buff = ByteBuffer.wrap(allByteArray);
-
 		buff.put(record.getID());
 		buff.put(delimiter);
 		buff.put(record.getDate_Time());
@@ -233,13 +254,14 @@ public class Record_Details {
 		buff.put(record.getHourly_Counts());
 		buff.put(delimiter);
 		buff.put(record.getSTD_NAME());
-
 		buff.put(end_of_record);
-
-		System.out.println(new String(buff.array()));
 		return buff.array();
 	}
 
+	/*
+	 * This function converts the given string into string of binary data This
+	 * string of binary data is returned
+	 */
 	public String strToBinary(String s) {
 		int n = s.length();
 		String bin_str = "";
@@ -258,11 +280,14 @@ public class Record_Details {
 				bin = "0" + bin;
 			}
 			bin_str += bin + " ";
-
 		}
 		return bin_str;
 	}
 
+	/*
+	 * this function is used within strToBinary function to convert the string into
+	 * string of binary
+	 */
 	public static String reverse(String input) {
 		char[] a = input.toCharArray();
 		int l, r = 0;
@@ -276,7 +301,5 @@ public class Record_Details {
 		}
 		return String.valueOf(a);
 	}
-
-	// -------------------------------------------------------------------------------------------------------------------------------------------------
 
 }
